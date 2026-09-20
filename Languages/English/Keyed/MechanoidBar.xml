@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<MB.OffsetX>Offset X</MB.OffsetX>
+	<MB.OffsetXDesc>Shifts the mechanoid bar left or right.</MB.OffsetXDesc>
+
+	<MB.OffsetY>Offset Y</MB.OffsetY>
+	<MB.OffsetYDesc>Shifts the mechanoid bar up or down.</MB.OffsetYDesc>
+
+	<MB.BaseScale>Icon Scale</MB.BaseScale>
+	<MB.BaseScaleDesc>Size of the mechanoid icons (1.0 = default colonist size).</MB.BaseScaleDesc>
+
+	<MB.MechsPerRow>Mechanoids per Row</MB.MechsPerRow>
+	<MB.MechsPerRowDesc>Maximum number of mechanoids in a single row before wrapping to a new line.</MB.MechsPerRowDesc>
+
+	<MB.MaxNumOfRows>Max Rows</MB.MaxNumOfRows>
+	<MB.MaxNumOfRowsDesc>Limit of rows on the bar.</MB.MaxNumOfRowsDesc>
+
+	<MB.MarginX>Margin X</MB.MarginX>
+	<MB.MarginXDesc>Horizontal spacing between icons.</MB.MarginXDesc>
+
+	<MB.MarginY>Margin Y</MB.MarginY>
+	<MB.MarginYDesc>Vertical spacing between icons.</MB.MarginYDesc>
+
+	<MB.HideBackground>Hide Background</MB.HideBackground>
+	<MB.HideBackgroundDesc>Removes the dark background behind the mechanoid bar.</MB.HideBackgroundDesc>
+
+	<MB.ShowHealthBar>Show Health Bar</MB.ShowHealthBar>
+	<MB.ShowHealthBarDesc>Displays the health bar under the mechanoid icon.</MB.ShowHealthBarDesc>
+</LanguageData>
