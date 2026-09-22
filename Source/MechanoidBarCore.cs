@@ -135,7 +135,7 @@ namespace MechanoidBar
             float posY = UI.screenHeight - 70f - barHeight + MechanoidBar.Settings.OffsetY;
 
             float buttonSize = 24f;
-            Rect buttonRect = new Rect(posX + barWidth + 4f, posY + barHeight / 2f - buttonSize / 2f, buttonSize, buttonSize);
+            Rect buttonRect = new Rect(posX - 20f, posY - buttonSize / 2f, buttonSize, buttonSize);
 
             TooltipHandler.TipRegion(buttonRect, MechanoidBar.Settings.IsBarHidden ? "Show Mechanoid Bar" : "Hide Mechanoid Bar");
 
