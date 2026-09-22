@@ -13,6 +13,9 @@ namespace MechanoidBar
         public bool entriesDirty = true;
 
         private const float BaseIconSize = 48f;
+        
+        private float nextCheckTime = 0f;
+        private const float CheckInterval = 0.5f; 
 
         public MechanoidBarCore()
         {
@@ -24,10 +27,13 @@ namespace MechanoidBar
 
         public void CheckRecacheEntries()
         {
-            // 1. Безопасная проверка каждый кадр: обновлялся ли список пешек
             if (Find.CurrentMap == null) return;
 
-            // mapPawns.SpawnedPawnsInFaction возвращает кэшированный список (без выделения памяти)
+            if (!entriesDirty && Time.realtimeSinceStartup < nextCheckTime) return;
+            
+            nextCheckTime = Time.realtimeSinceStartup + CheckInterval;
+            entriesDirty = false;
+
             List<Pawn> playerPawns = Find.CurrentMap.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer);
 
             int currentMechCount = 0;
@@ -37,15 +43,8 @@ namespace MechanoidBar
                     currentMechCount++;
             }
 
-            // Если количество механоидов не изменилось с прошлого кадра, сбрасываем флаг и выходим
-            if (Entries.Count == currentMechCount)
-            {
-                entriesDirty = false;
-                return;
-            }
+            if (Entries.Count == currentMechCount) return;
 
-            // 2. Если количество изменилось, пересоздаем список (без LINQ, чтобы не мусорить в памяти)
-            entriesDirty = false;
             Entries.Clear();
 
             for (int i = 0; i < playerPawns.Count; i++)
@@ -56,9 +55,6 @@ namespace MechanoidBar
                     Entries.Add(new MechanoidBarEntry { pawn = p, group = 0 });
                 }
             }
-
-            // Debug лог только при реальном изменении
-            // Log.Message($"[MechanoidBar] Recached entries. Mechanoids found: {Entries.Count}");
         }
 
         public void MechanoidBarOnGUI()
@@ -97,7 +93,6 @@ namespace MechanoidBar
                 GUI.color = prevColor;
             }
 
-            // Кэшируем выделение, чтобы не вызывать его дважды для каждой пешки
             List<object> selectedObjects = Find.Selector.SelectedObjects;
 
             for (int i = 0; i < Entries.Count; i++)
@@ -188,23 +183,15 @@ namespace MechanoidBar
             }
 
             bool isDrafted = pawn.drafter != null && pawn.Drafted;
-            bool isFightMode = false;
 
-            var controlGroup = pawn.GetMechControlGroup();
-            if (controlGroup != null && pawn.Drafted)
-            {
-                isFightMode = true;
-            }
-
-            if (isDrafted || isFightMode)
+            if (isDrafted)
             {
                 Color prevColor = GUI.color;
-                GUI.color = isDrafted ? new Color(0.5f, 1f, 0.5f, 1f) : new Color(1f, 0.5f, 0.5f, 1f);
+                GUI.color = new Color(0.5f, 1f, 0.5f, 1f);
                 Widgets.DrawBox(rect, 2);
                 GUI.color = prevColor;
             }
 
-            // Быстрая проверка выделения без вызова Find.Selector.IsSelected каждый кадр
             bool isSelected = selectedObjects.Contains(pawn);
             if (isSelected)
             {
