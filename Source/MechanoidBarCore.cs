@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace MechanoidBar
 {
@@ -24,32 +24,51 @@ namespace MechanoidBar
 
         public void CheckRecacheEntries()
         {
-            if (!entriesDirty) return;
+            // 1. Безопасная проверка каждый кадр: обновлялся ли список пешек
+            if (Find.CurrentMap == null) return;
+
+            // mapPawns.SpawnedPawnsInFaction возвращает кэшированный список (без выделения памяти)
+            List<Pawn> playerPawns = Find.CurrentMap.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer);
+
+            int currentMechCount = 0;
+            for (int i = 0; i < playerPawns.Count; i++)
+            {
+                if (playerPawns[i].RaceProps.IsMechanoid)
+                    currentMechCount++;
+            }
+
+            // Если количество механоидов не изменилось с прошлого кадра, сбрасываем флаг и выходим
+            if (Entries.Count == currentMechCount)
+            {
+                entriesDirty = false;
+                return;
+            }
+
+            // 2. Если количество изменилось, пересоздаем список (без LINQ, чтобы не мусорить в памяти)
             entriesDirty = false;
             Entries.Clear();
 
-            if (Find.CurrentMap == null) return;
-
-            var mechs = Find.CurrentMap.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer)
-                                .Where(p => p.RaceProps.IsMechanoid);
-
-            foreach (var mech in mechs)
+            for (int i = 0; i < playerPawns.Count; i++)
             {
-                Entries.Add(new MechanoidBarEntry { pawn = mech, group = 0 });
+                Pawn p = playerPawns[i];
+                if (p.RaceProps.IsMechanoid)
+                {
+                    Entries.Add(new MechanoidBarEntry { pawn = p, group = 0 });
+                }
             }
+
+            // Debug лог только при реальном изменении
+            // Log.Message($"[MechanoidBar] Recached entries. Mechanoids found: {Entries.Count}");
         }
 
         public void MechanoidBarOnGUI()
         {
             CheckRecacheEntries();
 
-            // Если механоидов нет, не рисуем ничего
             if (Entries.Count == 0) return;
 
-            // Сначала рисуем кнопку скрытия/раскрытия
             DrawToggleButton();
 
-            // Если панель скрыта в настройках (или кнопкой), не рисуем её
             if (MechanoidBar.Settings.IsBarHidden) return;
 
             float scale = MechanoidBar.Settings.BaseScale;
@@ -78,6 +97,9 @@ namespace MechanoidBar
                 GUI.color = prevColor;
             }
 
+            // Кэшируем выделение, чтобы не вызывать его дважды для каждой пешки
+            List<object> selectedObjects = Find.Selector.SelectedObjects;
+
             for (int i = 0; i < Entries.Count; i++)
             {
                 int row = i / maxPerRow;
@@ -88,14 +110,13 @@ namespace MechanoidBar
 
                 Rect iconRect = new Rect(x, y, iconSize, iconSize);
 
-                DrawMechanoid(Entries[i], iconRect);
+                DrawMechanoid(Entries[i], iconRect, selectedObjects);
                 HandleInteraction(Entries[i], iconRect);
             }
         }
 
         private void DrawToggleButton()
         {
-            // Если механоидов нет, кнопку тоже не рисуем
             if (Entries.Count == 0) return;
 
             float scale = MechanoidBar.Settings.BaseScale;
@@ -113,40 +134,40 @@ namespace MechanoidBar
             float posX = (UI.screenWidth / 2f) - (barWidth / 2f) + MechanoidBar.Settings.OffsetX;
             float posY = UI.screenHeight - 70f - barHeight + MechanoidBar.Settings.OffsetY;
 
-            float buttonSize = 24f; // Стандартный размер нативных кнопок UI
-
-            // Кнопка всегда располагается справа от панели, независимо от того, скрыта панель или нет
+            float buttonSize = 24f;
             Rect buttonRect = new Rect(posX + barWidth + 4f, posY + barHeight / 2f - buttonSize / 2f, buttonSize, buttonSize);
 
-            // Используем нативную текстуру RimWorld (стрелочка вниз)
+            TooltipHandler.TipRegion(buttonRect, MechanoidBar.Settings.IsBarHidden ? "Show Mechanoid Bar" : "Hide Mechanoid Bar");
+
+            bool mouseOver = Mouse.IsOver(buttonRect);
+            if (mouseOver)
+            {
+                Widgets.DrawHighlight(buttonRect);
+            }
+
             Texture2D icon = TexButton.Collapse;
-             
-            bool clicked;
+            Color prevColor = GUI.color;
+            GUI.color = mouseOver ? GenUI.MouseoverColor : Color.white;
+
             if (MechanoidBar.Settings.IsBarHidden)
             {
-                // Если панель скрыта, поворачиваем стрелочку на 180 градусов (чтобы она указывала вверх)
-                Matrix4x4 matrix = GUI.matrix;
-                GUIUtility.RotateAroundPivot(180f, buttonRect.center);
-                clicked = Widgets.ButtonImage(buttonRect, icon, Color.white, GenUI.MouseoverColor);
-                GUI.matrix = matrix; // Возвращаем матрицу в исходное состояние
+                GUI.DrawTexture(new Rect(buttonRect.x, buttonRect.yMax, buttonRect.width, -buttonRect.height), icon);
             }
             else
             {
-                // Если панель видима, рисуем стандартную стрелочку вниз
-                clicked = Widgets.ButtonImage(buttonRect, icon, Color.white, GenUI.MouseoverColor);
+                GUI.DrawTexture(buttonRect, icon);
             }
+            GUI.color = prevColor;
 
-            if (clicked)
+            if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && mouseOver)
             {
                 MechanoidBar.Settings.IsBarHidden = !MechanoidBar.Settings.IsBarHidden;
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
                 Event.current.Use();
             }
-
-            // Нативный тултип
-            TooltipHandler.TipRegion(buttonRect, MechanoidBar.Settings.IsBarHidden ? "Show Mechanoid Bar" : "Hide Mechanoid Bar");
         }
 
-        private void DrawMechanoid(MechanoidBarEntry entry, Rect rect)
+        private void DrawMechanoid(MechanoidBarEntry entry, Rect rect, List<object> selectedObjects)
         {
             Pawn pawn = entry.pawn;
 
@@ -183,7 +204,9 @@ namespace MechanoidBar
                 GUI.color = prevColor;
             }
 
-            if (Find.Selector.IsSelected(pawn))
+            // Быстрая проверка выделения без вызова Find.Selector.IsSelected каждый кадр
+            bool isSelected = selectedObjects.Contains(pawn);
+            if (isSelected)
             {
                 Color prevColor = GUI.color;
                 GUI.color = Color.cyan;
@@ -221,12 +244,12 @@ namespace MechanoidBar
                         Find.Selector.ClearSelection();
                         Find.Selector.Select(pawn, false, false);
                     }
-                    Event.current.Use();
-                }
 
-                if (Event.current.type == EventType.MouseDown && Event.current.button == 1)
-                {
-                    Find.CameraDriver.JumpToCurrentMapLoc(pawn.Position);
+                    if (Event.current.clickCount == 2)
+                    {
+                        Find.CameraDriver.JumpToCurrentMapLoc(pawn.Position);
+                    }
+
                     Event.current.Use();
                 }
             }
