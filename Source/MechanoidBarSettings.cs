@@ -46,7 +46,6 @@ namespace MechanoidBar
         private bool _showHealthBar = Default_ShowHealthBar;
         public bool ShowHealthBar { get => _showHealthBar; set => Util.SetValue(ref _showHealthBar, value, v => ApplyChanges()); }
 
-        // Новая настройка для сохранения состояния панели
         private bool _isBarHidden = false;
         public bool IsBarHidden { get => _isBarHidden; set => _isBarHidden = value; }
         #endregion
@@ -90,8 +89,6 @@ namespace MechanoidBar
             Scribe_Values.Look(ref _marginY, nameof(MarginY), Default_MarginY);
             Scribe_Values.Look(ref _hideBackground, nameof(HideBackground), Default_HideBackground);
             Scribe_Values.Look(ref _showHealthBar, nameof(ShowHealthBar), Default_ShowHealthBar);
-
-            // Сохраняем состояние скрытия панели
             Scribe_Values.Look(ref _isBarHidden, nameof(IsBarHidden), false);
             ApplyChanges();
         }
