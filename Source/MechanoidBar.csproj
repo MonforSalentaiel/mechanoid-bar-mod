@@ -35,13 +35,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Source\ControlsBuilder.cs" />
-    <Compile Include="Source\MechanoidBar.cs" />
-    <Compile Include="Source\MechanoidBarSettings.cs" />
-    <Compile Include="Source\MechanoidBarCore.cs" />
-    <Compile Include="Source\MechanoidBarEntry.cs" />
-    <Compile Include="Source\HarmonyPatches.cs" />
-    <Compile Include="Source\Properties\AssemblyInfo.cs" />
+    <Compile Include="ControlsBuilder.cs" />
+    <Compile Include="MechanoidBar.cs" />
+    <Compile Include="MechanoidBarSettings.cs" />
+    <Compile Include="MechanoidBarCore.cs" />
+    <Compile Include="MechanoidBarEntry.cs" />
+    <Compile Include="HarmonyPatches.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Publicizer">
@@ -62,7 +62,7 @@
     <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Source\Languages\English\Keyed\MechanoidBar.xml" />
+    <Content Include="Languages\English\Keyed\MechanoidBar.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
