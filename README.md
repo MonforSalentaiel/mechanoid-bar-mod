@@ -3,7 +3,7 @@ A mod for Rimworld that adds a separate bar on screen for mechanoids.
 
 Current supported versions: **1.6**
 
-**Steam Workshop**: 
+**Steam Workshop**: https://steamcommunity.com/sharedfiles/filedetails/?id=3807222076
 
 There is a toggle to hide and unhide it. You can adjust panel position, icon size, spacing and health bar visibility. 
 
